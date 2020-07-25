@@ -195,6 +195,13 @@ KERNEL_DEPMOD_STAGING_DIR := $(call intermediates-dir-for,PACKAGING,depmod_vendo
 KERNEL_MODULE_MOUNTPOINT := vendor
 endif
 
+GCC_PREBUILTS := $(BUILD_TOP)/prebuilts/gcc/$(HOST_OS)-x86
+ifeq ($(TARGET_KERNEL_NEW_GCC_COMPILE),true)
+KERNEL_TOOLCHAIN_arm64 := $(GCC_PREBUILTS)/aarch64/aarch64-elf/bin
+KERNEL_TOOLCHAIN_PREFIX_arm64 := aarch64-elf-
+KERNEL_TOOLCHAIN_arm := $(GCC_PREBUILTS)/arm/arm-eabi/bin
+KERNEL_TOOLCHAIN_PREFIX_arm := arm-eabi-
+else
 TARGET_KERNEL_CROSS_COMPILE_PREFIX := $(strip $(TARGET_KERNEL_CROSS_COMPILE_PREFIX))
 ifneq ($(TARGET_KERNEL_CROSS_COMPILE_PREFIX),)
 KERNEL_TOOLCHAIN_PREFIX ?= $(TARGET_KERNEL_CROSS_COMPILE_PREFIX)
@@ -204,6 +211,7 @@ else ifeq ($(KERNEL_ARCH),arm)
 KERNEL_TOOLCHAIN_PREFIX ?= arm-linux-androidkernel-
 else ifeq ($(KERNEL_ARCH),x86)
 KERNEL_TOOLCHAIN_PREFIX ?= x86_64-linux-androidkernel-
+endif
 endif
 
 ifeq ($(KERNEL_TOOLCHAIN),)
@@ -265,10 +273,16 @@ else
     KERNEL_CROSS_COMPILE := CROSS_COMPILE="$(ccache) $(KERNEL_TOOLCHAIN_PATH)"
 endif
 
-# Needed for CONFIG_COMPAT_VDSO, safe to set for all arm64 builds
+## Needed for CONFIG_COMPAT_VDSO, safe to set for all arm64 builds
+#ifeq ($(TARGET_KERNEL_NEW_GCC_COMPILE),true)
+#ifeq ($(KERNEL_ARCH),arm64)
+#KERNEL_CROSS_COMPILE += CROSS_COMPILE_ARM32="$(KERNEL_TOOLCHAIN_arm)/$(KERNEL_TOOLCHAIN_PREFIX_arm)"
+#endif
+#else
 ifeq ($(KERNEL_ARCH),arm64)
    KERNEL_CROSS_COMPILE += CROSS_COMPILE_ARM32="arm-linux-androideabi-"
 endif
+#endif
 
 ccache =
 
